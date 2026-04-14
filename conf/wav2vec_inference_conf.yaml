@@ -1,0 +1,10 @@
+cuda_device:           '0'               # Use by default cuda, select the GPU to use
+time_model:            False             # Time the model inference
+determine_gpu_usage:   False             # Determine the GPU usage
+model_path:            ./models/wav2vec2-large-xlsr-53-gl-with-lm    # Folder containing the transcription model
+audios_path:           ./audios/test_20.wav     # Folder containing the audios or an audio file
+transcriptions_path:   ./audios/audios_output/  # File where the transcriptions will be saved
+metadata:
+    metadata_path:    ./audios/          # File containing the metadata
+    audio_column:     0                  # Column containing the audio path
+

@@ -1,0 +1,33 @@
+# JetBrain's PyCharm
+.idea
+
+# Mics files
+*.log
+*.pkl
+*.csv
+*.json
+*.xlsx
+*.pth
+*.docx
+*.tmp
+*.png
+
+# Directories with data or logs
+data/
+Med_acc_ad_features/
+Med_acc_ad_models/
+Acc_ad_features/
+Acc_ad_models/
+Accexible_features/
+Accexible_models/
+Adress_features/
+Adress_models/
+MedPer_features/
+MedPer_models/
+Distrimuse_mci_features/
+src/models/
+*__pycache__*
+models_saved/
+/test/temp_folder/
+.qodo
+dicoperia_features/
