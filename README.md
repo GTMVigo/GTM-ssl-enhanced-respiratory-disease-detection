@@ -4,7 +4,7 @@ Code accompanying the paper **Improving Respiratory Disease Detection Through SS
 
 This repository provides a minimal pipeline to:
 - extract **SSL embeddings** from audio recordings,
-- configure experiments (via a YAML file),
+- configure experiments via a YAML file,
 - train and evaluate **classification models**.
 
 It is intended for users who want to reproduce or adapt the methodology described in the paper.
@@ -23,13 +23,14 @@ The **three main files** are:
 
 # Installation
 
-```pip install -r requirements.txt
+```bash
+pip install -r requirements.txt
 ```
 
 ⚠️ If using GPU, ensure compatibility between:
-- PyTorch  
-- CUDA  
-- NVIDIA drivers  
+- PyTorch
+- CUDA
+- NVIDIA drivers
 
 ---
 
@@ -38,10 +39,8 @@ The **three main files** are:
 You need:
 - A folder with `.wav` files  
 - Two CSV files:
-  - a **condition CSV** (labels)
-  - a **global CSV** (metadata)
-
----
+  - a condition CSV (labels)
+  - a global CSV (metadata)
 
 ## Example structure
 
@@ -63,7 +62,7 @@ project_root/
 
 ---
 
-## Condition CSV (labels)
+# Condition CSV (labels)
 
 Patient-level labels:
 
@@ -73,7 +72,8 @@ participant_id,label
 983475920ab,0
 ```
 
-Configured via:
+Configured in `multiclass_classification_conf.yaml` via:
+
 ```yaml
 condition_path: path/to/labels.csv
 condition_id_column: <column_index>
@@ -82,7 +82,7 @@ condition_label_column: <column_index>
 
 ---
 
-## Global CSV (metadata)
+# Global CSV (metadata)
 
 Audio-level metadata:
 
@@ -94,17 +94,19 @@ filename,participant_id,task,moment
 ```
 
 Configured via:
+
 ```yaml
 global_file_path: path/to/metadata.csv
 ```
 
 ---
 
-## Linking audio to labels
+# Linking audio to labels
 
-Audio files are linked to labels using a simple convention: the **patient ID is the prefix of the filename**.
+Audio files are linked to labels using a simple convention: the patient ID is the prefix of the filename.
 
 Example:
+
 ```
 1848560680d_c6b9296a_before_a_01.wav → 1848560680d
 ```
@@ -122,9 +124,9 @@ python extract_embeddings.py
 ```
 
 This step extracts embeddings using:
-- WavLM  
-- HuBERT  
-- wav2vec 2.0  
+- WavLM
+- HuBERT
+- wav2vec 2.0
 
 You may need to adjust paths inside the script depending on your setup.
 
@@ -141,6 +143,7 @@ multiclass_classification_conf.yaml
 ### Key parameters
 
 #### Paths
+
 ```yaml
 condition_path: path/to/labels.csv
 global_transcript_file: path/to/metadata.csv
@@ -151,6 +154,7 @@ save_metrics_path: path/to/save/metrics/
 ```
 
 #### Execution mode
+
 ```yaml
 run:
   extract_train_test: True
@@ -158,6 +162,7 @@ run:
 ```
 
 #### Feature usage
+
 ```yaml
 use_acoustic_feat: True
 use_ssl_wavlm: True
@@ -166,19 +171,14 @@ use_ssl_wav2vec: True
 ```
 
 #### Feature loading
+
 ```yaml
 load_extracted_features: True
 ```
 
-**Note:**  
-- On the **first run**, set `load_extracted_features: False` to compute and save the acoustic features and embeddings. After that, you can set it to `True` to reuse them and speed up experiments.  
-- Acoustic feature extraction (e.g., MFCCs, ComParE subsets, etc.) is configured in the YAML file under the corresponding feature extraction section (`feature_type` and related parameters).
-
-#### Model configuration
-```yaml
-model_list: [LogisticRegression]
-kfold_splits: 5
-```
+Note:
+- First run → set `load_extracted_features: False`
+- Later → set `True` to reuse features and speed up experiments
 
 ---
 
@@ -189,7 +189,7 @@ python multiclass_classification.py
 ```
 
 This will:
-- load config
+- load configuration
 - load or compute features
 - train models
 - evaluate performance
@@ -199,39 +199,108 @@ This will:
 
 # Typical Usage Modes
 
-## A. Using precomputed embeddings (recommended)
+## A. Using precomputed embeddings
 
 ```yaml
 load_extracted_features: True
 ```
----
 
 ## B. Full pipeline from raw audio
 
-1. Place `.wav` files in `wav_folder`
-2. Prepare labels and metadata CSVs
-3. Run:
-   ```   
-   python extract_embeddings.py
-   ```
-4. Configure YAML
-5. Run:
-   ```
-   python multiclass_classification.py
-   ```
+1. Place `.wav` files in `wav_folder`  
+2. Prepare labels and metadata CSVs  
+
+Run:
+
+```bash
+python extract_embeddings.py
+```
+
+Then:
+
+```bash
+python multiclass_classification.py
+```
+
+---
+
+# Post-classification Utilities
+
+## 1. Combination-based aggregation (`process_combinations.py`)
+
+This script implements late fusion by combining predictions from multiple experiments.
+
+It:
+- loads prediction CSVs
+- aggregates predictions at subject level
+- applies:
+  - majority voting
+  - threshold-based voting
+  - average probability fusion
+- computes metrics (accuracy, F1-score, recall, precision, AUC)
+
+Usage:
+
+```bash
+python process_combinations.py
+```
+
+⚠️ Important:
+
+```yaml
+detailed_metrics: True
+```
+
+must be enabled in `multiclass_classification_conf.yaml` before executing `multiclass_classification.py` in order to save patient predictions for `process_combinations.py` usage.
+
+---
+
+## 2. Metrics summarization (`make_summary.py`)
+
+Aggregates results across folds or runs by computing:
+- mean
+- standard deviation
+
+Usage:
+
+```bash
+python make_summary.py
+```
 
 ---
 
 # Features
 
 ## Acoustic features available
+
 - ComParE 2016 (energy, spectral, MFCC, voicing, rasta)
 - spafe features (MFCC, CQCC, GFCC, LFCC, PLP)
 
 ## SSL embeddings available
-- WavLM  
-- HuBERT  
-- wav2vec 2.0  
+
+- WavLM
+- HuBERT
+- wav2vec 2.0
+
+---
+
+# SSL Models
+
+The SSL embeddings used in this repository rely on the following pretrained models:
+
+- wav2vec 2.0 → Facebook AI pretrained model
+- WavLM and HuBERT (fine-tuned for pathological speech):  
+  https://huggingface.co/morenolq/SSL4PR-hubert-base
+
+Reference:
+
+```
+@inproceedings{moreno_ssl4pr,
+  title={Self-Supervised Learning for Pathological Speech Representation},
+  author={Moreno et al.},
+  year={2024}
+}
+```
 
 ---
 
@@ -239,22 +308,24 @@ load_extracted_features: True
 
 After execution:
 
-- Models → `model_folder`
-- Metrics → `save_metrics_path`
-- Optional detailed predictions
+- Trained models → saved in `model_folder`
+- Evaluation metrics (CSV) → saved in `save_metrics_path`
+- Per-sample predictions (optional) → saved when `detailed_metrics: True`
+- Extracted features → saved in `path_extracted_features`
 
 ---
 
 # Notes
 
-- Update all paths in the YAML file before running.
-- GPU requires compatible CUDA + drivers.
+- Update all paths in the YAML file before running
+- GPU usage requires compatible CUDA and drivers
+- Utility scripts use hardcoded paths and may need adaptation
 
 ---
 
 # Citation
 
-```bibtex
+```
 @inproceedings{GTM_improving_respiratory_disease,
   title   = {Improving Respiratory Disease Detection Through SSL-Enhanced Acoustic Analysis and Exercise-Rest Measurements},
   author  = {Vera López, Álvaro and Tilves Santiago, Darío and Ramírez Sánchez, José Manuel and Docío-Fernández, Laura and García-Mateo, Carmen and García-Caballero, Alejandro and Bustillo Casado, María},
@@ -267,6 +338,6 @@ After execution:
 
 # Acknowledgments
 
-Multimedia Technologies Group (GTM)  
-atlanTTic Research Center  
-Universidade de Vigo
+- Multimedia Technologies Group (GTM)  
+- atlanTTic Research Center  
+- Universidade de Vigo  
