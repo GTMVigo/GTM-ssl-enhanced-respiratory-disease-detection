@@ -3,8 +3,8 @@
 Code accompanying the paper **Improving Respiratory Disease Detection Through SSL-Enhanced Acoustic Analysis and Exercise-Rest Measurements**.
 
 This repository provides a pipeline to:
-- extract **SSL embeddings** and **acoustic features** from audio recordings,
-- configure experiments via a YAML file,
+- extract **SSL embeddings** and **acoustic features** from audio recordings.
+- configure experiments via a YAML file.
 - train and evaluate **classification models**.
 
 It is intended for users who want to reproduce or adapt the methodology described in the paper.
@@ -15,9 +15,9 @@ It is intended for users who want to reproduce or adapt the methodology describe
 
 These are the **core scripts required to run experiments**:
 
-- `extract_embeddings.py` → Extract SSL embeddings from audio (Acoustic features are computed during classification using the `AudioProcessor` module)  
-- `multiclass_classification_conf.yaml` → Configure experiment  
-- `multiclass_classification.py` → Train & evaluate models  
+- `extract_embeddings.py` → Extract SSL embeddings from audio (Acoustic features are computed during classification by executing `multiclass_classification.py`, using the `AudioProcessor` module).  
+- `multiclass_classification_conf.yaml` → Configure experiment.
+- `multiclass_classification.py` → Train & evaluate models.  
 
 ---
 
@@ -55,11 +55,19 @@ project_root/
 │   └── metadata.csv
 ├── extracted_features/
 ├── src/
+│   ├── exceptions/
+│   ├── features/
+│   ├── files/
+│   ├── logger/
+│   ├── model/
+│   └── common_classification.py
 ├── extract_embeddings.py
 ├── multiclass_classification.py
 ├── multiclass_classification_conf.yaml
-```
-
+├── process_combinations.py
+├── make_summary.py
+├── requirements.txt
+└── README.md
 ---
 
 # Condition CSV (labels)
@@ -93,10 +101,10 @@ filename,participant_id,task,moment
 983475920ab_f83aa12b_before_a_01.wav,983475920ab,a,before
 ```
 
-Configured via:
+Configured in `multiclass_classification_conf.yaml` via:
 
 ```yaml
-global_file_path: path/to/metadata.csv
+global_transcript_file: path/to/metadata.csv
 ```
 
 ---
@@ -117,7 +125,12 @@ This ID is matched with the condition CSV, so multiple recordings can share the 
 
 # Execution Workflow
 
-## 1. Extract SSL embeddings
+## 1. Prepare data
+
+1. Place `.wav` files in `wav_folder`  
+2. Prepare labels and metadata CSVs  
+
+## 2. Extract SSL embeddings
 
 ```bash
 python extract_embeddings.py
@@ -132,7 +145,7 @@ You may need to adjust paths inside the script depending on your setup.
 
 ---
 
-## 2. Configure experiment
+## 3. Configure experiment
 
 Edit:
 
@@ -175,69 +188,45 @@ use_ssl_wav2vec: True
 ```yaml
 load_extracted_features: True
 ```
-
-Note:
-- First run → set `load_extracted_features: False`
-- Later → set `True` to reuse features and speed up experiments
-
 ---
 
-## 3. Run classification
+## 4. Run classification
 
 ```bash
 python multiclass_classification.py
 ```
 
 This will:
-- load configuration
-- load or compute features
-- train models
-- evaluate performance
-- save results
+- load configuration.
+- load and/or compute features.
+- train models.
+- evaluate performance.
+- save results.
 
 ---
 
-# Typical Usage Modes
+## 5. Outputs
 
-## A. Using precomputed embeddings
+After execution:
 
-```yaml
-load_extracted_features: True
-```
-
-## B. Full pipeline from raw audio
-
-1. Place `.wav` files in `wav_folder`  
-2. Prepare labels and metadata CSVs  
-
-Run:
-
-```bash
-python extract_embeddings.py
-```
-
-Then:
-
-```bash
-python multiclass_classification.py
-```
+- Trained models → saved in `model_folder`.
+- Evaluation metrics (CSV) → saved in `save_metrics_path`.
+- Per-sample predictions (optional) → saved when `detailed_metrics: True`.
+- Extracted features → saved in `path_extracted_features` (HDF5 `.h5` format).
 
 ---
 
-# Post-classification Utilities
 
-## 1. Combination-based aggregation (`process_combinations.py`)
+## 6. Post-classification Utilities
+
+### 6.1. Combination-based aggregation (`process_combinations.py`)
 
 This script implements late fusion by combining predictions from multiple experiments.
 
 It:
-- loads prediction CSVs
-- aggregates predictions at subject level
-- applies:
-  - majority voting
-  - threshold-based voting
-  - average probability fusion
-- computes metrics (accuracy, F1-score, recall, precision, AUC)
+- loads prediction CSVs.
+- aggregates predictions at subject level.
+- computes metrics (accuracy, F1-score, recall, precision, AUC).
 
 Usage:
 
@@ -255,7 +244,7 @@ must be enabled in `multiclass_classification_conf.yaml` before executing `multi
 
 ---
 
-## 2. Metrics summarization (`make_summary.py`)
+### 6.2. Metrics summarization (`make_summary.py`)
 
 Aggregates results across folds or runs by computing:
 - mean
@@ -271,20 +260,11 @@ python make_summary.py
 
 # Features
 
-## Acoustic features available
-
-- ComParE 2016 (energy, spectral, MFCC, voicing, rasta)
-- spafe features (MFCC, CQCC, GFCC, LFCC, PLP)
-
 ## SSL embeddings available
 
 - WavLM
 - HuBERT
 - wav2vec 2.0
-
----
-
-# SSL Models
 
 The SSL embeddings used in this repository rely on the following pretrained models:
 
@@ -303,37 +283,46 @@ If you use these models, please cite:
 
 ```
 
----
+## Acoustic features available
 
-# Outputs
+- ComParE 2016 (energy, spectral, MFCC, voicing, rasta)
+- spafe features (MFCC, CQCC, GFCC, LFCC, PLP)
 
-After execution:
+Acoustic features extraction is configured through the `audioprocessor_data` section in `multiclass_classification_conf.yaml`. These are the available parameters:
 
-- Trained models → saved in `model_folder`
-- Evaluation metrics (CSV) → saved in `save_metrics_path`
-- Per-sample predictions (optional) → saved when `detailed_metrics: True`
-- Extracted features → saved in `path_extracted_features` (HDF5 `.h5` format)
+Available parameters:
 
----
+1. `feature_type` (list): Types of features to extract. Options include:  
+   `compare_2016_energy`, `compare_2016_llds`, `compare_2016_voicing`,  
+   `compare_2016_spectral`, `compare_2016_mfcc`, `compare_2016_rasta`,  
+   `compare_2016_basic_spectral`,  
+   `spafe_mfcc`, `spafe_imfcc`, `spafe_cqcc`, `spafe_gfcc`,  
+   `spafe_lfcc`, `spafe_lpc`, `spafe_lpcc`, `spafe_msrcc`,  
+   `spafe_ngcc`, `spafe_pncc`, `spafe_psrcc`, `spafe_plp`, `spafe_rplp`
 
-# Notes
-
-- Update all paths in the YAML file before running
-- GPU usage requires compatible CUDA and drivers
-- Utility scripts use hardcoded paths and may need adaptation
-
+2. `resampling_rate` (int): Target sampling rate for audio signals  
+3. `top_db` (float): Threshold (in dB) for trimming silence  
+4. `pre_emphasis_coefficient` (float): Pre-emphasis filter coefficient  
+5. `f_min` (int): Minimum frequency  
+6. `f_max` (int): Maximum frequency  
+7. `window_size` (int): Window size in milliseconds  
+8. `hop_length` (int): Hop length in milliseconds  
+9. `n_mels` (int): Number of Mel bands  
+10. `n_mfcc` (int): Number of MFCC coefficients  
+11. `plp_order` (int): Order of PLP coefficients  
+12. `conversion_approach` (str): Audio conversion strategy  
+13. `normalize` (bool): Apply normalization to features  
+14. `use_energy` (bool): Include energy in feature computation  
+15. `apply_mean_norm` (bool): Apply mean normalization  
+16. `apply_vari_norm` (bool): Apply variance normalization  
+17. `compute_deltas_feats` (bool): Compute first-order derivatives  
+18. `compute_deltas_deltas_feats` (bool): Compute second-order derivatives  
+19. `compute_opensmile_extra_features` (bool): Include additional OpenSMILE features
 ---
 
 # Citation
 
-```
-@inproceedings{GTM_improving_respiratory_disease,
-  title   = {Improving Respiratory Disease Detection Through SSL-Enhanced Acoustic Analysis and Exercise-Rest Measurements},
-  author  = {Vera López, Álvaro and Tilves Santiago, Darío and Ramírez Sánchez, José Manuel and Docío-Fernández, Laura and García-Mateo, Carmen and García-Caballero, Alejandro and Bustillo Casado, María},
-  journal = {Frontiers},
-  year    = {2026}
-}
-```
+The paper is currently under review.
 
 ---
 

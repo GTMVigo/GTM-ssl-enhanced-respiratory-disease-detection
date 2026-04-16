@@ -9,7 +9,7 @@ from typing import List, Dict, Tuple, Any
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.preprocessing import label_binarize
 from sklearn.metrics import confusion_matrix, roc_auc_score
-from src.model.model_object_batch import ModelBuilder
+from src.model.model_object_multiclass import ModelBuilder
 from src.features.audio_processor import AudioProcessor
 
 

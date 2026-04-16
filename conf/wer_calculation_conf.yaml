@@ -1,6 +1,0 @@
-transcriptions_path:   ./audios/test/.txt       # Folder containing the transcriptions
-transcriptions_column: 4                  # Column containing the transcriptions  
-ground_truth_path:     ./audios/ground_truth/transcriptions/.txt  # Folder containing the ground truth
-metadata:
-  path_column:         1                  # File containing the metadata
-  transcript_column:   2                  # Column containing the audio path

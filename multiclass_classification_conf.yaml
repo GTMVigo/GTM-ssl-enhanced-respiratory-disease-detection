@@ -8,11 +8,11 @@ model_extract_train_test:
     condition_label_column:      3                       # Column containing the label
     wav_folder:                  /home/temporal2/avera/coperia_raw/train      # Folder containing the audio files
     transcript_folder:           /home/projects/avera/medper/uvigo_voice/data/dicoperia/training_transcripts # Folder containing the transcript files
-    global_transcript_file: /home/projects/avera/medper/uvigo_voice/data/dicoperia/after_cough.csv
+    global_transcript_file:     /home/projects/avera/medper/uvigo_voice/data/dicoperia/after_cough.csv
     filter_dataset:              None                    # Filter the dataset by filepath
     model_folder:                /home/temporal2/avera/coperia_raw/models      # Folder to save the models
     log_file:                    ./log.log   # Log file
-    save_metrics_path: ./metrics_moe/cough/after_cough/AC_LR_hubert.csv
+    save_metrics_path:          ./metrics/AC_LR_hubert.csv
     num_cores:                   None                    # Number of cores to use, None for all
     train_each_feat_combination: False                   # Train the model for each feature combination
     load_extracted_features:     True                    # Load the extracted features
@@ -63,10 +63,10 @@ model_evaluate:
     condition_label_column:     3                             # Column containing the label
     wav_folder:                 ./data/Med_acc_ad/audios      # Folder containing the audio files
     transcript_folder:          ./data/Med_acc_ad/transcripts # Folder containing the transcript files
-    global_transcript_file: /home/projects/avera/medper/uvigo_voice/data/dicoperia/after_cough.csv
+    global_transcript_file:     /home/projects/avera/medper/uvigo_voice/data/dicoperia/after_cough.csv
     filter_dataset:              None                         # Filter the dataset by filepath
     log_file:                   ./Acc_2_Ad.log                # Log file
-    save_metrics_path: ./metrics_moe/cough/after_cough/AC_LR_hubert.csv
+    save_metrics_path:          ./metrics/AC_LR_hubert.csv
     num_cores:                  None                          # Number of cores to use, None for all
     load_extracted_features:    True                          # Load the extracted features
     path_extracted_features:    ./Med_acc_ad_features/        # Folder to save and load the extracted features

@@ -1,6 +1,0 @@
-audios_path:           ./audios/tilgal/clips/   # Folder containing the audios or an audio file
-metadata_path:         ./audios/                # File containing the metadata
-audio_column:          1                        # Column containing the audio path
-timings_path:          ./audios/tilgal/timings/ # Folder containing the timings or a timing file
-timings_in_filename:   True                     # If the timing to cut have the same name as the audio file or appended by _timings
-output_path:           ./audios/tilgal/test/    # Folder to save the audios
