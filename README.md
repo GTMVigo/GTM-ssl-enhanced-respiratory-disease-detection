@@ -2,8 +2,8 @@
 
 Code accompanying the paper **Improving Respiratory Disease Detection Through SSL-Enhanced Acoustic Analysis and Exercise-Rest Measurements**.
 
-This repository provides a minimal pipeline to:
-- extract **SSL embeddings** from audio recordings,
+This repository provides a pipeline to:
+- extract **SSL embeddings** and **acoustic features** from audio recordings,
 - configure experiments via a YAML file,
 - train and evaluate **classification models**.
 
@@ -13,9 +13,9 @@ It is intended for users who want to reproduce or adapt the methodology describe
 
 # Repository Workflow
 
-The **three main files** are:
+These are the **core scripts required to run experiments**:
 
-- `extract_embeddings.py` → Extract SSL embeddings from audio  
+- `extract_embeddings.py` → Extract SSL embeddings from audio (Acoustic features are computed during classification using the `AudioProcessor` module)  
 - `multiclass_classification_conf.yaml` → Configure experiment  
 - `multiclass_classification.py` → Train & evaluate models  
 
@@ -311,7 +311,7 @@ After execution:
 - Trained models → saved in `model_folder`
 - Evaluation metrics (CSV) → saved in `save_metrics_path`
 - Per-sample predictions (optional) → saved when `detailed_metrics: True`
-- Extracted features → saved in `path_extracted_features`
+- Extracted features → saved in `path_extracted_features` (HDF5 `.h5` format)
 
 ---
 
