@@ -261,7 +261,7 @@ python make_summary.py
 
 # Features
 
-## SSL embeddings available
+## SSL embedding
 
 - WavLM
 - HuBERT
@@ -284,7 +284,7 @@ If you use these models, please cite:
 
 ```
 
-## Acoustic features available
+## Acoustic features
 
 - ComParE 2016 (energy, spectral, MFCC, voicing, rasta)
 - spafe features (MFCC, CQCC, GFCC, LFCC, PLP)
