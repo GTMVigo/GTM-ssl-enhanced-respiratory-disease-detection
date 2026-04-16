@@ -292,14 +292,15 @@ The SSL embeddings used in this repository rely on the following pretrained mode
 - WavLM and HuBERT (fine-tuned for pathological speech):  
   https://huggingface.co/morenolq/SSL4PR-hubert-base
 
-Reference:
+If you use these models, please cite:
 
-```
+```bibtex
 @inproceedings{moreno_ssl4pr,
   title={Self-Supervised Learning for Pathological Speech Representation},
   author={Moreno et al.},
   year={2024}
 }
+
 ```
 
 ---
