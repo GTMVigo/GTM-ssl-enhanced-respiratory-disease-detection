@@ -11,6 +11,14 @@ It is intended for users who want to reproduce or adapt the methodology describe
 
 ---
 
+# Reproducibility Notes
+This repository is designed to support the experimental setup reported in the manuscript.
+
+- Participant-level grouping: the pipeline groups recordings by participant when `which_features: aggregated` is used, concatenating per-participant audio features in canonical order.
+- The main classification pipeline uses stratified K-fold cross-validation via `kfold_splits`. Fixed seeds are used for dataset shuffling, fold generation and model initialitation.
+
+---
+
 # Repository Workflow
 
 These are the **core scripts required to run experiments**:
@@ -217,7 +225,6 @@ After execution:
 
 ---
 
-
 ## 6. Post-classification Utilities
 
 ### 6.1. Combination-based aggregation (`process_combinations.py`)
@@ -259,6 +266,28 @@ python make_summary.py
 
 ---
 
+### 6.3. ROC curve plotting (`plot_roc_curves_cv_folds.py`)
+
+Use this script to generate ROC curves from saved model predictions.
+
+Usage:
+
+```bash
+python plot_roc_curves.py
+```
+
+---
+
+### 6.4. Notebook-based manuscript analysis (`coperia_analysis.ipynb`)
+
+Use this notebook for complementary analysis. It includes:
+- cross-fold confidence interval computation,
+- logistic regression coefficient stability,
+- top-feature identification,
+
+
+---
+
 # Features
 
 ## SSL embedding
@@ -294,12 +323,10 @@ Acoustic features extraction is configured through the `audioprocessor_data` sec
 Available parameters:
 
 1. `feature_type` (list): Types of features to extract. Options include:  
-   `compare_2016_energy`, `compare_2016_llds`, `compare_2016_voicing`,  
-   `compare_2016_spectral`, `compare_2016_mfcc`, `compare_2016_rasta`,  
+   `compare_2016_energy`, `compare_2016_voicing`,  
+   `compare_2016_spectral`, `compare_2016_rasta`,  
    `compare_2016_basic_spectral`,  
-   `spafe_mfcc`, `spafe_imfcc`, `spafe_cqcc`, `spafe_gfcc`,  
-   `spafe_lfcc`, `spafe_lpc`, `spafe_lpcc`, `spafe_msrcc`,  
-   `spafe_ngcc`, `spafe_pncc`, `spafe_psrcc`, `spafe_plp`, `spafe_rplp`
+   `spafe_mfcc`
 
 2. `resampling_rate` (int): Target sampling rate for audio signals  
 3. `top_db` (float): Threshold (in dB) for trimming silence  
@@ -319,6 +346,28 @@ Available parameters:
 17. `compute_deltas_feats` (bool): Compute first-order derivatives  
 18. `compute_deltas_deltas_feats` (bool): Compute second-order derivatives  
 19. `compute_opensmile_extra_features` (bool): Include additional OpenSMILE features
+
+## Feature Dimensionality and Preprocessing
+
+Prior to feature extraction, recordings were resampled to 16 kHz. For the acoustic features, a voice activity detection procedure based on energy thresholding was applied to remove silent and non-vocal segments. The resulting signals were subsequently processed using pre-emphasis filtering (coefficient = 0.97) and amplitude normalization. First-order and second-order derivatives were computed for these features. 
+
+
+Dimensionality (per recording) of the feature representations evaluated in this study:
+
+- energy-based descriptors: 132
+- voicing features: 198
+- RASTA spectral descriptors: 858
+- basic spectral descriptors: 495
+- MFCCs: 429
+- Wav2vec 2.0 embeddings: 1024
+- WavLM embeddings: 768
+- HuBERT embeddings: 768
+
+Common feature configurations:
+
+- `acoustic` total dimension: 2112
+- `acoustic + Wav2vec 2.0 + WavLM` total dimension: 3904
+
 ---
 
 # Citation
